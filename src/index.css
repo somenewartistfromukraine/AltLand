@@ -10,13 +10,84 @@
     height: 100vh;
     width: 100vw;
     overflow: hidden;
+    position: relative;
+    background: transparent;
   }
   #root {
     height: 100%;
     width: 100%;
+    background: transparent;
   }
   .leaflet-container {
     width: 100%;
     height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1;
+    background: transparent !important;
+    border: none !important;
+  }
+  .map-layer-selector {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    z-index: 1000;
+  }
+  .map-layer-button {
+    width: 40px;
+    height: 40px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+  }
+  .map-layer-button:hover {
+    background: transparent;
+  }
+  .map-layer-button.active {
+    background: transparent;
+  }
+  .map-layer-button .icon {
+    font-size: 20px;
+    color: white;
+  }
+  .map-layer-menu {
+    position: absolute;
+    top: 40px;
+    right: 0;
+    background: transparent;
+    border: none;
+    padding: 4px;
+    display: none;
+    width: 100px;
+  }
+  .map-layer-menu.active {
+    display: block;
+  }
+  .map-layer-item {
+    width: 100px;
+    padding: 8px;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: transparent;
+    border: none;
+    justify-content: flex-end;
+    text-align: right;
+  }
+  .map-layer-item .icon {
+    font-size: 16px;
+    color: white;
+    margin-right: 8px;
+  }
+  .map-layer-item .text {
+    font-size: 12px;
+    color: white;
+    display: none;
   }
 }

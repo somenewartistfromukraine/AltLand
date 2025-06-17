@@ -1,11 +1,10 @@
 import React from 'react';
 import { MapContainer as LeafletMap, TileLayer, useMap } from 'react-leaflet';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import 'leaflet/dist/leaflet.css';
+import { useMapStore } from '../../stores/mapStore';
 
 interface MapContainerProps {
-  center?: [number, number];
-  zoom?: number;
   height?: string;
 }
 
@@ -21,11 +20,9 @@ const TILE_LAYERS = {
 } as const;
 
 export const MapContainer: React.FC<MapContainerProps> = ({
-  center = [50.4501, 30.5234],
-  zoom = 10,
   height = "100vh"
 }) => {
-  const [activeLayer, setActiveLayer] = useState<'satellite' | 'osm'>('satellite');
+  const { center, zoom, activeLayer } = useMapStore();
 
   return (
     <div style={{ height: height }}>
