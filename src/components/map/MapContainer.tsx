@@ -1,3 +1,4 @@
+import React from 'react';
 import { MapContainer as LeafletMap, TileLayer, useMap } from 'react-leaflet';
 import { useEffect, useState } from 'react';
 import 'leaflet/dist/leaflet.css';
@@ -28,7 +29,12 @@ export const MapContainer: React.FC<MapContainerProps> = ({
 
   return (
     <div style={{ height: height }}>
-      <LeafletMap center={center} zoom={zoom} style={{ height: '100%' }}>
+      <LeafletMap 
+        center={center} 
+        zoom={zoom} 
+        style={{ height: '100%' }}
+        zoomControl={false} // Disable default zoom controls
+      >
         <TileLayer
           url={TILE_LAYERS[activeLayer].url}
           attribution={TILE_LAYERS[activeLayer].attribution}
