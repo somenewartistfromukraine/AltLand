@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { MapContainer } from './components/map/MapContainer';
+import { LazyMap } from './components/map/LazyMap';
 import { useMapStore } from './stores/mapStore';
 import { ChooseMapIcon, SatelliteIcon, OSMIcon } from './components/map/MapIcons';
 
@@ -20,8 +20,13 @@ function App() {
   };
 
   return (
-    <div style={{ position: 'relative', width: '100%', height: '100%' }}>
-      <MapContainer />
+    <div style={{
+      position: 'relative',
+      width: '100%',
+      height: '100%',
+      background: '#f0f0f0'
+    }}>
+      <LazyMap />
       <div className="map-layer-selector">
         <div 
           className="map-layer-button" 

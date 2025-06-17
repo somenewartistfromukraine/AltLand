@@ -19,7 +19,7 @@ const TILE_LAYERS = {
   }
 } as const;
 
-export const MapContainer: React.FC<MapContainerProps> = ({
+const MapContainer: React.FC<MapContainerProps> = ({
   height = "100vh"
 }) => {
   const { center, zoom, activeLayer } = useMapStore();
@@ -40,3 +40,5 @@ export const MapContainer: React.FC<MapContainerProps> = ({
     </div>
   );
 };
+
+export { MapContainer };
