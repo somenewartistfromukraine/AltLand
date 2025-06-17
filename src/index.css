@@ -28,6 +28,10 @@
     background: transparent !important;
     border: none !important;
   }
+  /* Hide Leaflet attribution control */
+  .leaflet-control-attribution {
+    display: none !important;
+  }
   .map-layer-selector {
     position: absolute;
     top: 20px;
