@@ -1,0 +1,212 @@
+Ти - IT-команія, що спеціалізується на full-stack розробці WEB-застосунків.
+Ти маєш багаторічний досвід та широке портфоліо із розробки web-застосунків з інтеграцією карт.
+У тебе найкраще виходить:
+- Створювати чистий, масштабований код
+- Слідувати best practices
+- Пояснювати архітектурні рішення
+- Надавати готові до використання рішення
+
+Маємо новий проект:
+ - Ключові вимоги:
+  - Легкий, лаконічний веб-застосунок для роботи з картами
+  - Модульна архітектура з можливістю масштабування
+  - Кросплатформенність (мобільні, планшети, десктопи)
+  - Початковий функціонал: відображення супутникової карти
+  - Майбутній розвиток: додавання висот
+ - Рекомендовані технології:
+  - Frontend Stack:
+   - React 18 - для компонентної архітектури та ефективного рендерингу
+   - TypeScript - для типобезпеки та кращої підтримки коду
+   - Vite - швидка збірка та гарячий перезавантаження
+   - Tailwind CSS - утилітарний CSS фреймворк для швидкої стилізації
+ - Картографічні рішення:
+  - Основна рекомендація: Leaflet + React-Leaflet
+ - Джерела карт (безкоштовні):
+  - OpenStreetMap - основна база даних карт
+  - Satellite imagery:
+   - ESRI World Imagery (безкоштовно до певних лімітів)
+   - Google Satellite (через стороннє API)
+   - OpenTopoMap (для топографії)
+ - Додаткові інструменти
+  - React Query/TanStack Query - кешування та управління даними
+  - Zustand - легкий state management
+  - React Router - навігація
+  - PWA - для мобільного досвіду 
+
+Технічне завдання: 
+ - Веб-застосунок для роботи з картами
+ - Огляд проекту:
+ - Мета:
+  - Створити легкий, масштабований веб-застосунок для відображення супутникових карт з можливістю майбутнього розширення функціоналу.
+ - Архітектурний підхід:
+  - Оптимізована монолітна архітектура з модульною структурою для легкого майбутнього рефакторингу.
+ - Технологічний стек (фінальні рекомендації):
+  - Frontend Core:
+   - React 18 + TypeScript - надійна основа з типобезпекою
+   - Vite - швидка збірка та HMR
+   - Tailwind CSS - утилітарне стилювання без надлишкового CSS
+  - Картографічне рішення:
+   - Leaflet (1.9.x) + React-Leaflet (4.x) - легка, надійна картографічна бібліотека
+   - Leaflet.markercluster - для групування маркерів (майбутнє)
+  - State Management & Data:
+   - Zustand - мінімалістичний state management (2KB gzipped)
+   - TanStack Query v4 - кешування API запитів
+   - React Router v6 - клієнтська маршрутизація
+  - Картографічні джерела (безкоштовні):
+   - ESRI World Imagery - основне супутникове покриття
+   - OpenStreetMap - векторні дані та fallback
+   - OpenTopoMap - топографічні дані для майбутніх висот
+   
+Архітектура застосунку:
+src/
+├── components/           # Переусні React компоненти
+│   ├── ui/              # Базові UI елементи
+│   ├── map/             # Картографічні компоненти
+│   └── layout/          # Layout компоненти
+├── hooks/               # Custom React hooks
+├── services/            # API сервіси та утиліти
+│   ├── mapService.ts    # Картографічна логіка
+│   └── apiClient.ts     # HTTP клієнт
+├── stores/              # Zustand stores
+├── types/               # TypeScript типи
+├── utils/               # Допоміжні функції
+└── constants/           # Константи та конфігурація
+
+Детальне технічне завдання:
+1. MVP:
+1.1 Базова настройка проекту:
+
+    bash# Ініціалізація проекту
+    npm create vite@latest map-app -- --template react-ts
+    cd map-app
+    npm install
+    
+    # Основні залежності
+    npm install leaflet react-leaflet
+    npm install @tanstack/react-query zustand react-router-dom
+    npm install tailwindcss postcss autoprefixer
+    npm install @types/leaflet
+    
+    # Dev залежності
+    npm install -D @types/node
+
+1.2 Основні компоненти:
+
+ - MapContainer Component:
+ 
+    interface MapContainerProps {
+      center?: [number, number];
+      zoom?: number;
+      height?: string;
+    }
+    
+    const MapContainer: React.FC<MapContainerProps> = ({
+      center = [50.4501, 30.5234], // Київ за замовчуванням
+      zoom = 10,
+      height = "100vh"
+    }) => {
+      // Реалізація з Leaflet
+    }
+
+ - TileLayer Configuration:
+
+    const TILE_LAYERS = {
+      satellite: {
+        url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+        attribution: "Tiles © Esri"
+      },
+      osm: {
+        url: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+        attribution: "© OpenStreetMap contributors"
+      }
+    } as const;
+
+1.3 State Management (Zustand):
+
+    interface MapStore {
+      center: [number, number];
+      zoom: number;
+      activeLayer: 'satellite' | 'osm';
+      setCenter: (center: [number, number]) => void;
+      setZoom: (zoom: number) => void;
+      setActiveLayer: (layer: 'satellite' | 'osm') => void;
+    }
+
+1.4 UI Components:
+ - LayerSwitcher - перемикач між супутниковою та векторною картою
+ - ZoomControls - кастомні кнопки зуму
+ - LoadingSpinner - індикатор завантаження
+ - ErrorBoundary - обробка помилок
+
+2. Оптимізація та UX:
+2.1 Performance:
+ - Lazy loading компонентів
+ - Мемоізація важких обчислень
+ - Оптимізація рендерингу карти
+
+2.2 Responsive Design:
+ - Адаптивність для мобільних пристроїв
+ - Touch gestures підтримка
+ - PWA готовність
+
+2.3 Error Handling:
+ - Fallback для недоступних тайлів
+ - Retry механізми
+ - User-friendly error messages
+
+3. Підготовка до масштабування:
+3.1 Модульність:
+ - Абстракція картографічних провайдерів
+ - Plugin система для майбутніх функцій
+ - Централізована конфігурація
+
+3.2 Testing:
+ - Unit тести для utilities
+ - Integration тести для Map компонентів
+ - E2E тести ключових сценаріїв
+ 
+Конфігурація та Best Practices:
+ - Vite Configuration:
+ 
+	// vite.config.ts
+	export default defineConfig({
+	  plugins: [react()],
+	  build: {
+		target: 'esnext',
+		minify: 'esbuild',
+		rollupOptions: {
+		  output: {
+			manualChunks: {
+			  leaflet: ['leaflet', 'react-leaflet']
+			}
+		  }
+		}
+	  }
+	});
+
+ - Environment Variables:
+ 
+	VITE_MAP_DEFAULT_CENTER_LAT=50.4501
+	VITE_MAP_DEFAULT_CENTER_LNG=30.5234
+	VITE_MAP_DEFAULT_ZOOM=10
+	VITE_ESRI_API_KEY=optional_for_extended_usage
+
+ - PWA Configuration:
+  - Service Worker для офлайн карт
+  - App Manifest для мобільної установки
+  - Кешування статичних ресурсів
+
+ - Deployment Strategy:
+  - Розробка: Vite dev server
+  - Staging: Netlify/Vercel preview
+  - Production: CDN deployment з географічним розподілом
+
+Майбутній розвиток:
+ - Короткострокові цілі:
+  - Додавання висот через Elevation APIs
+  - Базова аналітика використання
+  - Оптимізація продуктивності
+ - Довгострокові цілі:
+  - Мікросервісна архітектура при потребі
+  - Реалтайм функції
+  - Інтеграція з додатковими даними
