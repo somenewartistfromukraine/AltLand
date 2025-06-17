@@ -34,7 +34,7 @@ export const MapContainer: React.FC<MapContainerProps> = ({
       >
         <TileLayer
           url={TILE_LAYERS[activeLayer].url}
-          attribution={TILE_LAYERS[activeLayer].attribution}
+          attribution=""
         />
       </LeafletMap>
     </div>
