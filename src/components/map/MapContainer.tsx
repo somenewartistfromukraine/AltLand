@@ -4,7 +4,10 @@ import 'leaflet/dist/leaflet.css';
 import { useMapStore } from '../../stores/mapStore';
 import { getMemoizedTileLayerUrl, getMemoizedTileLayerAttribution, getMemoizedTileLayerOptions } from '../../utils/memoize';
 import L from 'leaflet';
+import { useElevation } from '../../hooks/useElevation';
+// import ElevationProfile from './ElevationProfile';
 import './MapContainer.css';
+// import './ElevationProfile.css';
 
 interface LocationInfo {
   lat: number;
@@ -76,12 +79,15 @@ const MapContainer: React.FC<MapContainerProps> = ({
     zoom: 0,
     timestamp: new Date().toISOString()
   });
+  const [currentBounds, setCurrentBounds] = useState<L.LatLngBounds | null>(null);
+  const { data: elevationSummary, isLoading: isElevationLoading, error: elevationError } = useElevation(currentBounds);
 
   const handleMoveEnd = React.useCallback((e: L.LeafletEvent) => {
     const map = e.target as L.Map;
     const center = map.getCenter();
     const zoom = map.getZoom();
     const bounds = map.getBounds();
+    setCurrentBounds(bounds);
     const pixelPoint = map.latLngToContainerPoint(center);
     const tileSize = 256; // Standard tile size
     const scale = Math.pow(2, zoom);
@@ -160,7 +166,7 @@ const MapContainer: React.FC<MapContainerProps> = ({
         <MapEvents onMoveEnd={handleMoveEnd} />
       </LeafletMap>
       <div className="crosshair" />
-      
+
       <div className="location-info">
         <div className="info-row">
           <span className="info-label">Широта:</span>
@@ -185,7 +191,25 @@ const MapContainer: React.FC<MapContainerProps> = ({
         <div className="info-row timestamp">
           {new Date(locationInfo.timestamp).toLocaleTimeString()}
         </div>
+        {isElevationLoading && <div className="info-row">Loading elevation...</div>}
+        {elevationError && <div className="info-row error">Elevation Error</div>}
+        {elevationSummary && (
+          <div className="info-row elevation-summary">
+            <span title="Min, Average, Max Elevation">Elevation (m): </span>
+            <span>{elevationSummary.min}</span>
+            <span> / </span>
+            <span>{elevationSummary.avg}</span>
+            <span> / </span>
+            <span>{elevationSummary.max}</span>
+          </div>
+        )}
       </div>
+
+      {/* <ElevationProfile 
+        data={elevationData || []} 
+        isLoading={isElevationLoading} 
+        error={elevationError} 
+      /> */}
     </div>
   );
 };

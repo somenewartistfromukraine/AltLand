@@ -68,6 +68,11 @@
   max-width: 250px;
   -webkit-backdrop-filter: blur(2px);
   backdrop-filter: blur(2px);
+  transition: bottom 0.3s ease-in-out;
+}
+
+.location-info.with-elevation {
+  bottom: 200px;
 }
 
 .info-row {
