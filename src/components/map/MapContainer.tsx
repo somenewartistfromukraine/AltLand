@@ -116,6 +116,7 @@ const MapContainer: React.FC<MapContainerProps> = ({
     <div 
       className={`map-container ${height === '100vh' ? 'full-height' : 'custom-height'}`} 
       style={containerStyle}
+      title="Переміщуйте та масштабуйте для дослідження. Перехрестя позначає центральну точку, для якої відображаються дані про висоту та координати."
     >
       <LeafletMap 
         center={mapCenter}
@@ -142,7 +143,7 @@ const MapContainer: React.FC<MapContainerProps> = ({
       <div className="k-slider-container">
         <input
           id="k-slider"
-          title="Коефіцієнт k"
+          title="Виділити западини <--O--> Виділити висоти"
           type="range"
           min="-1"
           max="1"
@@ -153,7 +154,7 @@ const MapContainer: React.FC<MapContainerProps> = ({
         />
       </div>
 
-      <div className="location-info">
+      <div className="location-info" title="Поточні координати та висота в центрі мапи">
         <span>
           {`Шир: ${locationInfo.lat.toFixed(6)}, Дов: ${locationInfo.lng.toFixed(6)}, Вис: ${isElevationLoading ? '...' : centerElevationInfo !== null ? `${centerElevationInfo.elevation.toFixed(0)}м` : 'н/д'}`}
         </span>

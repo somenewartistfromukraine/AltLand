@@ -25,23 +25,24 @@ function App() {
         <div 
           className="map-layer-button" 
           onClick={toggleMenu}
+          title="Вибрати шар мапи"
         >
           <div className="icon"><LayerSelectorIcon activeLayer={activeLayer} /></div>
           <div className={`map-layer-menu ${menuOpen ? 'open' : ''}`}>
             <div 
               className={`map-layer-item ${activeLayer === 'satellite' ? 'active' : ''}`} 
               onClick={() => handleLayerSelect('satellite')}
-              title="Satellite"
+              title="Супутник"
             >
-              <div className="text">Satellite</div>
+              <div className="text">Супутник</div>
               <div className="icon"><SatelliteIcon /></div>
             </div>
             <div 
               className={`map-layer-item ${activeLayer === 'osm' ? 'active' : ''}`} 
               onClick={() => handleLayerSelect('osm')}
-              title="Map"
+              title="Мапа"
             >
-              <div className="text">Map</div>
+              <div className="text">Мапа</div>
               <div className="icon"><OSMIcon /></div>
             </div>
           </div>
