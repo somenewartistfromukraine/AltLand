@@ -6,7 +6,9 @@ import { getMemoizedTileLayerUrl, getMemoizedTileLayerAttribution, getMemoizedTi
 import L from 'leaflet';
 import { getElevationForPoint, getElevationStatsForBounds, ElevationStats, PointElevationInfo } from '../../services/terrainService';
 import ElevationOverlay from './ElevationOverlay';
+
 import ConcentricCircles from './ConcentricCircles';
+import MapFlyTo from './MapFlyTo';
 import './MapContainer.css';
 
 interface LocationInfo {
@@ -140,6 +142,7 @@ const MapContainer: React.FC<MapContainerProps> = ({
       >
         <TileLayer {...tileLayerProps} />
         <MapEvents onMoveEnd={handleMoveEnd} />
+        <MapFlyTo />
         {isElevationVisible && <ElevationOverlay k={k} elevationStats={elevationStats} />}
         {targetPoint && (
           <Marker position={targetPoint} icon={L.divIcon({ className: 'red-dot-marker' })} />
@@ -164,18 +167,11 @@ const MapContainer: React.FC<MapContainerProps> = ({
         </div>
       )}
 
-      <div className="location-info" title="Поточні координати та висота в центрі мапи">
+      <div className="location-info" title="Поточні координати, висота та масштаб в центрі мапи">
         <span>
-          {`Шир: ${locationInfo.lat.toFixed(6)}, Дов: ${locationInfo.lng.toFixed(6)}, Вис: ${isElevationLoading ? '...' : centerElevationInfo !== null ? `${centerElevationInfo.elevation.toFixed(0)}м` : 'н/д'}`}
+          {`Шир: ${locationInfo.lat.toFixed(6)}, Дов: ${locationInfo.lng.toFixed(6)}, Вис: ${isElevationLoading ? '...' : centerElevationInfo !== null ? `${centerElevationInfo.elevation.toFixed(0)}м` : 'н/д'}, Зум: ${zoom.toFixed(2)}`}
         </span>
       </div>
-
-
-      {/* <ElevationProfile 
-        data={elevationData || []} 
-        isLoading={isElevationLoading} 
-        error={elevationError} 
-      /> */}
     </div>
   );
 };

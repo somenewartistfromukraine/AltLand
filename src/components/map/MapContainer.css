@@ -49,6 +49,7 @@
   content: '';
   position: absolute;
   background-color: red;
+  mix-blend-mode: difference;
 }
 
 /* Horizontal line */
@@ -124,4 +125,5 @@
   border-radius: 50%;
   border: 2px solid #555;
 }
+
 

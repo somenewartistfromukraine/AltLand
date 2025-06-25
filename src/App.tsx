@@ -1,24 +1,23 @@
 import React, { useState, useRef } from 'react';
 import { LazyMap } from './components/map/LazyMap';
 import { useMapStore } from './stores/mapStore';
-import { LayerSelectorIcon, SatelliteIcon, OSMIcon, ElevationLayerIcon, MakePointIcon, MakeCirclesIcon } from './components/map/MapIcons';
+import { LayerSelectorIcon, SatelliteIcon, OSMIcon, ElevationLayerIcon, MakePointIcon, MakeCirclesIcon, SearchIcon } from './components/map/MapIcons';
+import SearchControl from './components/map/SearchControl';
 import './App.css';
 
 function App() {
-    const { activeLayer, setActiveLayer, isElevationVisible, toggleElevationVisibility, targetPoint, isCirclesVisible, setTargetPoint, toggleCirclesVisibility, center } = useMapStore();
+  const { activeLayer, setActiveLayer, isElevationVisible, toggleElevationVisibility, targetPoint, isCirclesVisible, isSearchVisible, setTargetPoint, toggleCirclesVisibility, toggleSearchVisibility, center } = useMapStore();
   const [menuOpen, setMenuOpen] = useState(false);
   const longPressTimer = useRef<NodeJS.Timeout | null>(null);
 
   const handlePressStart = () => {
-    // Set a timer to clear the target on long press
     longPressTimer.current = setTimeout(() => {
       setTargetPoint(null);
-      longPressTimer.current = null; // Timer has fired, so clear it
-    }, 500); // 500ms for long press
+      longPressTimer.current = null;
+    }, 500);
   };
 
   const handlePressEnd = () => {
-    // If the timer is still active, it means it was a short press
     if (longPressTimer.current) {
       clearTimeout(longPressTimer.current);
       setTargetPoint(center);
@@ -37,38 +36,38 @@ function App() {
   };
 
   return (
-    <div className="app-root">
-      <LazyMap />
-      <div className="map-controls">
-        <div className="layer-selector-container">
-          <div className={`map-layer-menu ${menuOpen ? 'open' : ''}`}>
-            <div
-              className={`map-layer-button ${activeLayer === 'satellite' ? 'active' : ''}`}
-              onClick={() => handleLayerSelect('satellite')}
-              title="Супутник"
-            >
-              <SatelliteIcon />
-            </div>
-            <div
-              className={`map-layer-button ${activeLayer === 'osm' ? 'active' : ''}`}
-              onClick={() => handleLayerSelect('osm')}
-              title="Мапа"
-            >
-              <OSMIcon />
-            </div>
-          </div>
-          <div
-            className={`map-layer-button ${menuOpen ? 'active' : ''}`}
-            onClick={toggleMenu}
-            title="Вибрати шар мапи"
+    <div className="App">
+      <div className="top-right-controls">
+        <div className="search-container">
+          {isSearchVisible && <SearchControl />}
+          <div 
+            className={`map-layer-button ${isSearchVisible ? 'active' : ''}`}
+            onClick={toggleSearchVisibility} 
+            title="Пошук"
           >
+            <SearchIcon />
+          </div>
+        </div>
+        <div className="layer-selector-container">
+          {menuOpen && (
+            <>
+              <div className="map-layer-button" onClick={() => handleLayerSelect('satellite')} title="Супутник">
+                <SatelliteIcon />
+              </div>
+              <div className="map-layer-button" onClick={() => handleLayerSelect('osm')} title="Карта">
+                <OSMIcon />
+              </div>
+            </>
+          )}
+          <div className={`map-layer-button ${menuOpen ? 'active' : ''}`} onClick={toggleMenu} title="Обрати шар карти">
             <LayerSelectorIcon activeLayer={activeLayer} />
           </div>
         </div>
+
         <div
           className={`map-layer-button ${isElevationVisible ? 'active' : ''}`}
           onClick={toggleElevationVisibility}
-          title="Показати/сховати шар висот"
+          title="Шар висот"
         >
           <ElevationLayerIcon />
         </div>
@@ -92,6 +91,7 @@ function App() {
           <MakePointIcon />
         </div>
       </div>
+      <LazyMap />
     </div>
   );
 }
