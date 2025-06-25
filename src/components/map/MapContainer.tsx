@@ -4,6 +4,7 @@ import 'leaflet/dist/leaflet.css';
 import { useMapStore } from '../../stores/mapStore';
 import { getMemoizedTileLayerUrl, getMemoizedTileLayerAttribution, getMemoizedTileLayerOptions } from '../../utils/memoize';
 import L from 'leaflet';
+import './MapContainer.css';
 
 interface MapContainerProps {
   height?: string;
@@ -39,7 +40,7 @@ const MapContainer: React.FC<MapContainerProps> = ({
   }), [activeLayer, tileLayerOptions]);
 
   return (
-    <div style={{ height: height }}>
+    <div className="map-container" style={{ height: height }}>
       <LeafletMap 
         center={mapCenter}
         zoom={mapZoom}
@@ -55,6 +56,7 @@ const MapContainer: React.FC<MapContainerProps> = ({
       >
         <TileLayer {...tileLayerProps} />
       </LeafletMap>
+      <div className="crosshair" />
     </div>
   );
 };
