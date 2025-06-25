@@ -1,12 +1,30 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { LazyMap } from './components/map/LazyMap';
 import { useMapStore } from './stores/mapStore';
-import { LayerSelectorIcon, SatelliteIcon, OSMIcon, ElevationLayerIcon } from './components/map/MapIcons';
+import { LayerSelectorIcon, SatelliteIcon, OSMIcon, ElevationLayerIcon, MakePointIcon } from './components/map/MapIcons';
 import './App.css';
 
 function App() {
-  const { activeLayer, setActiveLayer, isElevationVisible, toggleElevationVisibility } = useMapStore();
+    const { activeLayer, setActiveLayer, isElevationVisible, toggleElevationVisibility, targetPoint, setTargetPoint, center } = useMapStore();
   const [menuOpen, setMenuOpen] = useState(false);
+  const longPressTimer = useRef<NodeJS.Timeout | null>(null);
+
+  const handlePressStart = () => {
+    // Set a timer to clear the target on long press
+    longPressTimer.current = setTimeout(() => {
+      setTargetPoint(null);
+      longPressTimer.current = null; // Timer has fired, so clear it
+    }, 500); // 500ms for long press
+  };
+
+  const handlePressEnd = () => {
+    // If the timer is still active, it means it was a short press
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current);
+      setTargetPoint(center);
+      longPressTimer.current = null;
+    }
+  };
 
   const toggleMenu = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -53,6 +71,16 @@ function App() {
           title="Показати/сховати шар висот"
         >
           <ElevationLayerIcon />
+        </div>
+        <div
+          className={`map-layer-button ${targetPoint ? 'active' : ''}`}
+          onMouseDown={handlePressStart}
+          onMouseUp={handlePressEnd}
+          onTouchStart={handlePressStart}
+          onTouchEnd={handlePressEnd}
+          title="Натисніть, щоб позначити ціль. Утримуйте, щоб зняти позначку."
+        >
+          <MakePointIcon />
         </div>
       </div>
     </div>

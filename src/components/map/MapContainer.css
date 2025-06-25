@@ -28,6 +28,14 @@
   z-index: 1000;
 }
 
+.red-dot-marker {
+  background-color: red;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 1px solid white;
+}
+
 .crosshair::before,
 .crosshair::after {
   content: '';

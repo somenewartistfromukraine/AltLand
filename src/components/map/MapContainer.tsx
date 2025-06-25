@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useEffect } from 'react';
-import { MapContainer as LeafletMap, TileLayer, useMapEvents } from 'react-leaflet';
+import { MapContainer as LeafletMap, TileLayer, useMapEvents, Marker } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import { useMapStore } from '../../stores/mapStore';
 import { getMemoizedTileLayerUrl, getMemoizedTileLayerAttribution, getMemoizedTileLayerOptions } from '../../utils/memoize';
@@ -40,7 +40,7 @@ const MapEvents = ({ onMoveEnd }: { onMoveEnd: (e: L.LeafletEvent) => void }) =>
 const MapContainer: React.FC<MapContainerProps> = ({
   height = "100vh"
 }) => {
-  const { center, zoom, activeLayer, isElevationVisible, setCenter, setZoom } = useMapStore();
+  const { center, zoom, activeLayer, isElevationVisible, targetPoint, setCenter, setZoom } = useMapStore();
   const tileLayerOptions = getMemoizedTileLayerOptions(activeLayer);
 
   const [locationInfo, setLocationInfo] = useState<LocationInfo>({
@@ -53,6 +53,7 @@ const MapContainer: React.FC<MapContainerProps> = ({
   const [centerElevationInfo, setCenterElevationInfo] = useState<PointElevationInfo | null>(null);
   const [elevationStats, setElevationStats] = useState<ElevationStats | null>(null);
   const [isElevationLoading, setIsElevationLoading] = useState(true);
+
 
   const handleMoveEnd = React.useCallback(async (e: L.LeafletEvent) => {
     const map = e.target as L.Map;
@@ -87,6 +88,8 @@ const MapContainer: React.FC<MapContainerProps> = ({
     setCenterElevationInfo(elevationInfo);
     setElevationStats(stats);
     setIsElevationLoading(false);
+
+
   }, [setCenter, setZoom]);
 
 
@@ -137,32 +140,34 @@ const MapContainer: React.FC<MapContainerProps> = ({
         <TileLayer {...tileLayerProps} />
         <MapEvents onMoveEnd={handleMoveEnd} />
         {isElevationVisible && <ElevationOverlay k={k} elevationStats={elevationStats} />}
+        {targetPoint && (
+          <Marker position={targetPoint} icon={L.divIcon({ className: 'red-dot-marker' })} />
+        )}
       </LeafletMap>
       <div className="crosshair" />
 
       {isElevationVisible && (
-        <>
-          <div className="k-slider-container">
-            <input
-              id="k-slider"
-              title="Виділити западини <--O--> Виділити висоти"
-              type="range"
-              min="-1"
-              max="1"
-              step="0.05"
-              value={k}
-              onChange={(e) => setK(parseFloat(e.target.value))}
-              className="k-slider"
-            />
-          </div>
-
-          <div className="location-info" title="Поточні координати та висота в центрі мапи">
-            <span>
-              {`Шир: ${locationInfo.lat.toFixed(6)}, Дов: ${locationInfo.lng.toFixed(6)}, Вис: ${isElevationLoading ? '...' : centerElevationInfo !== null ? `${centerElevationInfo.elevation.toFixed(0)}м` : 'н/д'}`}
-            </span>
-          </div>
-        </>
+        <div className="k-slider-container">
+          <input
+            id="k-slider"
+            title="Виділити западини <--O--> Виділити висоти"
+            type="range"
+            min="-1"
+            max="1"
+            step="0.05"
+            value={k}
+            onChange={(e) => setK(parseFloat(e.target.value))}
+            className="k-slider"
+          />
+        </div>
       )}
+
+      <div className="location-info" title="Поточні координати та висота в центрі мапи">
+        <span>
+          {`Шир: ${locationInfo.lat.toFixed(6)}, Дов: ${locationInfo.lng.toFixed(6)}, Вис: ${isElevationLoading ? '...' : centerElevationInfo !== null ? `${centerElevationInfo.elevation.toFixed(0)}м` : 'н/д'}`}
+        </span>
+      </div>
+
 
       {/* <ElevationProfile 
         data={elevationData || []} 
