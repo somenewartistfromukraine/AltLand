@@ -1,13 +1,12 @@
 import React, { useState } from 'react';
 import { LazyMap } from './components/map/LazyMap';
 import { useMapStore } from './stores/mapStore';
-import { ChooseMapIcon, SatelliteIcon, OSMIcon } from './components/map/MapIcons';
+import { LayerSelectorIcon, SatelliteIcon, OSMIcon } from './components/map/MapIcons';
+import './App.css';
 
 function App() {
   const { activeLayer, setActiveLayer } = useMapStore();
   const [menuOpen, setMenuOpen] = useState(false);
-  const [menuX, setMenuX] = useState(0);
-  const [menuY, setMenuY] = useState(0);
 
   const toggleMenu = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -20,28 +19,22 @@ function App() {
   };
 
   return (
-    <div style={{
-      position: 'relative',
-      width: '100%',
-      height: '100%',
-      background: '#f0f0f0'
-    }}>
+    <div className="app-root">
       <LazyMap />
       <div className="map-layer-selector">
         <div 
           className="map-layer-button" 
           onClick={toggleMenu}
-          style={{ position: 'relative' }}
         >
-          <div className="icon">{activeLayer === 'satellite' ? '🌍' : '🗺️'}</div>
-          <div className="map-layer-menu" style={{ display: menuOpen ? 'block' : 'none' }}>
+          <div className="icon"><LayerSelectorIcon activeLayer={activeLayer} /></div>
+          <div className={`map-layer-menu ${menuOpen ? 'open' : ''}`}>
             <div 
               className={`map-layer-item ${activeLayer === 'satellite' ? 'active' : ''}`} 
               onClick={() => handleLayerSelect('satellite')}
               title="Satellite"
             >
               <div className="text">Satellite</div>
-              <div className="icon">🌍</div>
+              <div className="icon"><SatelliteIcon /></div>
             </div>
             <div 
               className={`map-layer-item ${activeLayer === 'osm' ? 'active' : ''}`} 
@@ -49,7 +42,7 @@ function App() {
               title="Map"
             >
               <div className="text">Map</div>
-              <div className="icon">🗺️</div>
+              <div className="icon"><OSMIcon /></div>
             </div>
           </div>
         </div>
