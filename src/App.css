@@ -40,6 +40,44 @@
   text-shadow: 1px 1px 2px black;
 }
 
+.search-control-wrapper {
+  position: relative;
+}
+
+.search-results {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background-color: rgba(30, 30, 30, 0.85);
+  border: 1px solid #555;
+  border-top: none;
+  border-radius: 0 0 5px 5px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 1001; /* Ensure it's above other controls */
+}
+
+.search-result-item {
+  padding: 8px 12px;
+  color: white;
+  cursor: pointer;
+  font-size: 14px;
+  border-bottom: 1px solid #444;
+}
+
+.search-result-item:last-child {
+  border-bottom: none;
+}
+
+.search-result-item:hover {
+  background-color: #4ade80;
+  color: black;
+}
+
 .layer-selector-container {
   display: flex;
   flex-direction: row;
