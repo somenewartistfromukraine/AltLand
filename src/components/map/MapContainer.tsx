@@ -4,7 +4,7 @@ import 'leaflet/dist/leaflet.css';
 import { useMapStore } from '../../stores/mapStore';
 import { getMemoizedTileLayerUrl, getMemoizedTileLayerAttribution, getMemoizedTileLayerOptions } from '../../utils/memoize';
 import L from 'leaflet';
-import { getElevationForPoint, getElevationStatsForBounds, ElevationStats } from '../../services/terrainService';
+import { getElevationForPoint, getElevationStatsForBounds, ElevationStats, PointElevationInfo } from '../../services/terrainService';
 import ElevationOverlay from './ElevationOverlay';
 import './MapContainer.css';
 
@@ -50,7 +50,7 @@ const MapContainer: React.FC<MapContainerProps> = ({
     timestamp: new Date().toISOString(),
   });
   const [k, setK] = useState(1.0);
-  const [centerElevation, setCenterElevation] = useState<number | null>(null);
+  const [centerElevationInfo, setCenterElevationInfo] = useState<PointElevationInfo | null>(null);
   const [elevationStats, setElevationStats] = useState<ElevationStats | null>(null);
   const [isElevationLoading, setIsElevationLoading] = useState(true);
 
@@ -80,11 +80,11 @@ const MapContainer: React.FC<MapContainerProps> = ({
 
     // Fetch elevation data concurrently
     setIsElevationLoading(true);
-    const [elevation, stats] = await Promise.all([
+    const [elevationInfo, stats] = await Promise.all([
       getElevationForPoint(newCenter, newZoom),
       getElevationStatsForBounds(bounds, newZoom)
     ]);
-    setCenterElevation(elevation);
+    setCenterElevationInfo(elevationInfo);
     setElevationStats(stats);
     setIsElevationLoading(false);
   }, [setCenter, setZoom]);
@@ -140,9 +140,9 @@ const MapContainer: React.FC<MapContainerProps> = ({
       <div className="crosshair" />
 
       <div className="k-slider-container">
-        <label htmlFor="k-slider">k: {k.toFixed(2)}</label>
         <input
           id="k-slider"
+          title="Коефіцієнт k"
           type="range"
           min="-1"
           max="1"
@@ -154,45 +154,9 @@ const MapContainer: React.FC<MapContainerProps> = ({
       </div>
 
       <div className="location-info">
-        <div className="info-row">
-          <span className="info-label">Широта:</span>
-          <span className="info-value">{locationInfo.lat.toFixed(4)}</span>
-        </div>
-        <div className="info-row">
-          <span className="info-label">Довгота:</span>
-          <span className="info-value">{locationInfo.lng.toFixed(4)}</span>
-        </div>
-        <div className="info-row">
-          <span className="info-label">Зум:</span>
-          <span className="info-value">{locationInfo.zoom}</span>
-        </div>
-        {locationInfo.tileX !== undefined && (
-          <div className="info-row">
-            <span className="info-label">Тайл:</span>
-            <span className="info-value">
-              {locationInfo.tileX}, {locationInfo.tileY} @ {locationInfo.tileZ}
-            </span>
-          </div>
-        )}
-        <div className="info-row">
-          <span className="info-label">Час:</span>
-          <span className="info-value">{new Date(locationInfo.timestamp).toLocaleTimeString()}</span>
-        </div>
-        <div className="info-row">
-          <span className="info-label">Висота (центр):</span>
-          <span className="info-value">
-            {isElevationLoading ? 'Завантаження...' : 
-             centerElevation !== null ? `${centerElevation.toFixed(2)} м` : 'Недоступно'}
-          </span>
-        </div>
-        {elevationStats && (
-          <div className="info-row stats-row">
-            <span className="info-label">Статистика (min/avg/max):</span>
-            <span className="info-value">
-              {elevationStats.min.toFixed(0)} / {elevationStats.avg.toFixed(0)} / {elevationStats.max.toFixed(0)} м
-            </span>
-          </div>
-        )}
+        <span>
+          {`Шир: ${locationInfo.lat.toFixed(6)}, Дов: ${locationInfo.lng.toFixed(6)}, Вис: ${isElevationLoading ? '...' : centerElevationInfo !== null ? `${centerElevationInfo.elevation.toFixed(0)}м` : 'н/д'}`}
+        </span>
       </div>
 
       {/* <ElevationProfile 

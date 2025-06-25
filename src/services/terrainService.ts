@@ -9,6 +9,18 @@ const AWS_TERRAIN_TILE_URL = 'https://s3.amazonaws.com/elevation-tiles-prod/terr
  * @param b The blue component (0-255).
  * @returns The elevation in meters.
  */
+export interface PointElevationInfo {
+  elevation: number;
+  r: number;
+  g: number;
+  b: number;
+  tileX: number;
+  tileY: number;
+  zoom: number;
+  pixelX: number;
+  pixelY: number;
+}
+
 export const decodeElevation = (r: number, g: number, b: number): number => {
   return (r * 256 + g + b / 256) - 32768;
 };
@@ -30,23 +42,42 @@ const getTileData = (url: string): Promise<TileData | null> => {
     return tileCache.get(url)!;
   }
 
-  const promise = new Promise<TileData | null>((resolve) => {
-    const image = new Image();
-    image.crossOrigin = 'Anonymous';
-    image.onload = () => {
-      const canvas = document.createElement('canvas');
-      canvas.width = image.width;
-      canvas.height = image.height;
-      const ctx = canvas.getContext('2d', { willReadFrequently: true });
-      if (!ctx) return resolve(null);
-      ctx.drawImage(image, 0, 0);
-      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      resolve({ imageData });
-    };
-    image.onerror = () => resolve(null);
-    image.src = url;
-  });
+  const MAX_RETRIES = 3;
+  const RETRY_DELAY = 300; // ms
 
+  const fetchWithRetry = (attempt: number): Promise<TileData | null> => {
+    return new Promise((resolve) => {
+      const image = new Image();
+      image.crossOrigin = 'Anonymous';
+
+      image.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = image.width;
+        canvas.height = image.height;
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+        if (!ctx) {
+          resolve(null);
+          return;
+        }
+        ctx.drawImage(image, 0, 0);
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        resolve({ imageData });
+      };
+
+      image.onerror = () => {
+        if (attempt < MAX_RETRIES) {
+          setTimeout(() => {
+            resolve(fetchWithRetry(attempt + 1));
+          }, RETRY_DELAY * attempt); // Increase delay for subsequent retries
+        } else {
+          resolve(null); // Failed after all retries
+        }
+      };
+      image.src = url;
+    });
+  };
+
+  const promise = fetchWithRetry(1);
   tileCache.set(url, promise);
   return promise;
 };
@@ -57,23 +88,32 @@ const getTileData = (url: string): Promise<TileData | null> => {
  * @param zoom The current map zoom level.
  * @returns A promise that resolves to the elevation in meters, or null if it can't be determined.
  */
-export const getElevationForPoint = async (latLng: L.LatLng, zoom: number): Promise<number | null> => {
-  if (zoom > 15) zoom = 15; // AWS tiles max zoom is 15
+export const getElevationForPoint = async (latLng: L.LatLng, zoom: number): Promise<PointElevationInfo | null> => {
+  const maxZoom = 15;
+  const effectiveZoom = Math.min(zoom, maxZoom);
 
   try {
     const TILE_SIZE = 256;
-    const n = Math.pow(2, zoom);
+    const n = Math.pow(2, effectiveZoom);
     const tileX = Math.floor(n * ((latLng.lng + 180) / 360));
     const tileY = Math.floor(n * (1 - (Math.log(Math.tan(latLng.lat * Math.PI / 180) + 1 / Math.cos(latLng.lat * Math.PI / 180)) / Math.PI)) / 2);
 
-    const tileUrl = L.Util.template(AWS_TERRAIN_TILE_URL, { x: tileX, y: tileY, z: zoom });
+    const tileUrl = L.Util.template(AWS_TERRAIN_TILE_URL, { x: tileX, y: tileY, z: effectiveZoom });
 
     const tileData = await getTileData(tileUrl);
     if (!tileData) return null;
     const { imageData } = tileData;
 
-    const px = Math.floor((n * ((latLng.lng + 180) / 360) * TILE_SIZE)) % TILE_SIZE;
-    const py = Math.floor((n * (1 - (Math.log(Math.tan(latLng.lat * Math.PI / 180) + 1 / Math.cos(latLng.lat * Math.PI / 180)) / Math.PI)) / 2 * TILE_SIZE)) % TILE_SIZE;
+    // Calculate pixel coordinates within the fetched tile
+    const nTotal = Math.pow(2, zoom);
+    const worldPx = nTotal * ((latLng.lng + 180) / 360) * TILE_SIZE;
+    const worldPy = nTotal * (1 - (Math.log(Math.tan(latLng.lat * Math.PI / 180) + 1 / Math.cos(latLng.lat * Math.PI / 180)) / Math.PI)) / 2 * TILE_SIZE;
+
+    const zoomDiff = zoom - effectiveZoom;
+    const scale = Math.pow(2, zoomDiff);
+
+    const px = Math.floor(worldPx % (TILE_SIZE * scale) / scale);
+    const py = Math.floor(worldPy % (TILE_SIZE * scale) / scale);
 
     const pixelIndex = (py * imageData.width + px) * 4;
     const r = imageData.data[pixelIndex];
@@ -82,7 +122,17 @@ export const getElevationForPoint = async (latLng: L.LatLng, zoom: number): Prom
 
     if (r === undefined || g === undefined || b === undefined) return null;
 
-    return Math.round(decodeElevation(r, g, b));
+    return {
+      elevation: Math.round(decodeElevation(r, g, b)),
+      r,
+      g,
+      b,
+      tileX,
+      tileY,
+      zoom: effectiveZoom,
+      pixelX: px,
+      pixelY: py,
+    };
   } catch (error) {
     console.error('Failed to get elevation for point:', error);
     return null;
@@ -102,10 +152,11 @@ export interface ElevationStats {
  * @returns A promise that resolves to the elevation statistics, or null if an error occurs.
  */
 export const getElevationStatsForBounds = async (bounds: L.LatLngBounds, zoom: number): Promise<ElevationStats | null> => {
-  if (zoom > 15) zoom = 15; // AWS tiles max zoom is 15
+  const maxZoom = 15;
+  const effectiveZoom = Math.min(zoom, maxZoom);
 
   const TILE_SIZE = 256;
-  const n = Math.pow(2, zoom);
+  const n = Math.pow(2, effectiveZoom);
 
   const latLngToTile = (lat: number, lng: number) => {
     const tileX = Math.floor(n * ((lng + 180) / 360));
@@ -119,7 +170,7 @@ export const getElevationStatsForBounds = async (bounds: L.LatLngBounds, zoom: n
   const tilePromises: Promise<TileData | null>[] = [];
   for (let x = minTile.x; x <= maxTile.x; x++) {
     for (let y = minTile.y; y <= maxTile.y; y++) {
-      const tileUrl = L.Util.template(AWS_TERRAIN_TILE_URL, { x, y, z: zoom });
+      const tileUrl = L.Util.template(AWS_TERRAIN_TILE_URL, { x, y, z: effectiveZoom });
       tilePromises.push(getTileData(tileUrl));
     }
   }
@@ -158,7 +209,6 @@ export const getElevationStatsForBounds = async (bounds: L.LatLngBounds, zoom: n
 
     return { min, max, avg };
   } catch (error) {
-    // This catch block might now only catch unexpected errors, as tile loading errors are handled.
     console.error('Failed to process elevation stats:', error);
     return null;
   }
