@@ -36,6 +36,14 @@
   border: 1px solid white;
 }
 
+.circle-label div {
+  color: yellow;
+  font-size: 10px;
+  font-weight: bold;
+  text-shadow: 1px 1px 2px black;
+  white-space: nowrap;
+}
+
 .crosshair::before,
 .crosshair::after {
   content: '';

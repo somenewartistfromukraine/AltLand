@@ -6,6 +6,7 @@ import { getMemoizedTileLayerUrl, getMemoizedTileLayerAttribution, getMemoizedTi
 import L from 'leaflet';
 import { getElevationForPoint, getElevationStatsForBounds, ElevationStats, PointElevationInfo } from '../../services/terrainService';
 import ElevationOverlay from './ElevationOverlay';
+import ConcentricCircles from './ConcentricCircles';
 import './MapContainer.css';
 
 interface LocationInfo {
@@ -40,7 +41,7 @@ const MapEvents = ({ onMoveEnd }: { onMoveEnd: (e: L.LeafletEvent) => void }) =>
 const MapContainer: React.FC<MapContainerProps> = ({
   height = "100vh"
 }) => {
-  const { center, zoom, activeLayer, isElevationVisible, targetPoint, setCenter, setZoom } = useMapStore();
+  const { center, zoom, activeLayer, isElevationVisible, targetPoint, isCirclesVisible, setCenter, setZoom } = useMapStore();
   const tileLayerOptions = getMemoizedTileLayerOptions(activeLayer);
 
   const [locationInfo, setLocationInfo] = useState<LocationInfo>({
@@ -143,6 +144,7 @@ const MapContainer: React.FC<MapContainerProps> = ({
         {targetPoint && (
           <Marker position={targetPoint} icon={L.divIcon({ className: 'red-dot-marker' })} />
         )}
+        {targetPoint && isCirclesVisible && <ConcentricCircles />}
       </LeafletMap>
       <div className="crosshair" />
 
