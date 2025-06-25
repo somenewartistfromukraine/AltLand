@@ -4,21 +4,9 @@ import 'leaflet/dist/leaflet.css';
 import { useMapStore } from '../../stores/mapStore';
 import { getMemoizedTileLayerUrl, getMemoizedTileLayerAttribution, getMemoizedTileLayerOptions } from '../../utils/memoize';
 import L from 'leaflet';
-import { useElevation } from '../../hooks/useElevation';
-// import ElevationProfile from './ElevationProfile';
+import { getElevationForPoint, getElevationStatsForBounds, ElevationStats } from '../../services/terrainService';
+import ElevationOverlay from './ElevationOverlay';
 import './MapContainer.css';
-// import './ElevationProfile.css';
-
-interface LocationInfo {
-  lat: number;
-  lng: number;
-  zoom: number;
-  tileX?: number;
-  tileY?: number;
-  tileZ?: number;
-  timestamp: string;
-  bounds?: L.LatLngBounds;
-}
 
 interface LocationInfo {
   lat: number;
@@ -39,89 +27,72 @@ interface MapContainerProps {
 const MapEvents = ({ onMoveEnd }: { onMoveEnd: (e: L.LeafletEvent) => void }) => {
   const map = useMapEvents({
     moveend: onMoveEnd,
-    zoomend: onMoveEnd,
   });
-  
-  // Store the last center and zoom to prevent unnecessary updates
-  const lastCenterRef = React.useRef<L.LatLng | null>(null);
-  const lastZoomRef = React.useRef<number | null>(null);
-  
-  // Trigger initial position update
-  React.useEffect(() => {
-    const center = map.getCenter();
-    const zoom = map.getZoom();
-    
-    // Only update if center or zoom has actually changed
-    if (!lastCenterRef.current || 
-        !lastCenterRef.current.equals(center) || 
-        lastZoomRef.current !== zoom) {
-      
-      lastCenterRef.current = center;
-      lastZoomRef.current = zoom;
-      
-      const event = { target: map } as unknown as L.LeafletEvent;
-      onMoveEnd(event);
-    }
-  }, [map, onMoveEnd]);
-  
+
+  useEffect(() => {
+    // Manually trigger moveend on initial load to fetch elevation
+    map.fire('moveend');
+  }, [map]);
+
   return null;
 };
 
 const MapContainer: React.FC<MapContainerProps> = ({
   height = "100vh"
 }) => {
-  const { center, zoom, activeLayer } = useMapStore();
+  const { center, zoom, activeLayer, setCenter, setZoom } = useMapStore();
   const tileLayerOptions = getMemoizedTileLayerOptions(activeLayer);
-  
+
   const [locationInfo, setLocationInfo] = useState<LocationInfo>({
-    lat: 0,
-    lng: 0,
-    zoom: 0,
-    timestamp: new Date().toISOString()
+    lat: center.lat,
+    lng: center.lng,
+    zoom: zoom,
+    timestamp: new Date().toISOString(),
   });
-  const [currentBounds, setCurrentBounds] = useState<L.LatLngBounds | null>(null);
-  const { data: elevationSummary, isLoading: isElevationLoading, error: elevationError } = useElevation(currentBounds);
+  const [k, setK] = useState(1.0);
+  const [centerElevation, setCenterElevation] = useState<number | null>(null);
+  const [elevationStats, setElevationStats] = useState<ElevationStats | null>(null);
+  const [isElevationLoading, setIsElevationLoading] = useState(true);
 
-  const handleMoveEnd = React.useCallback((e: L.LeafletEvent) => {
+  const handleMoveEnd = React.useCallback(async (e: L.LeafletEvent) => {
     const map = e.target as L.Map;
-    const center = map.getCenter();
-    const zoom = map.getZoom();
+    const newCenter = map.getCenter();
+    const newZoom = map.getZoom();
     const bounds = map.getBounds();
-    setCurrentBounds(bounds);
-    const pixelPoint = map.latLngToContainerPoint(center);
-    const tileSize = 256; // Standard tile size
-    const scale = Math.pow(2, zoom);
-    const tileX = Math.floor((pixelPoint.x * scale) / tileSize);
-    const tileY = Math.floor((pixelPoint.y * scale) / tileSize);
 
-    setLocationInfo(prev => {
-      // Only update if something actually changed
-      if (prev.lat === parseFloat(center.lat.toFixed(6)) &&
-          prev.lng === parseFloat(center.lng.toFixed(6)) &&
-          prev.zoom === zoom) {
-        return prev;
-      }
-      
-      return {
-        lat: parseFloat(center.lat.toFixed(6)),
-        lng: parseFloat(center.lng.toFixed(6)),
-        zoom,
-        tileX,
-        tileY,
-        tileZ: zoom,
-        timestamp: new Date().toISOString(),
-        bounds
-      };
+    setCenter(newCenter);
+    setZoom(newZoom);
+
+    const tileZ = newZoom;
+    const tileX = Math.floor((newCenter.lng + 180) / 360 * Math.pow(2, tileZ));
+    const tileY = Math.floor((1 - Math.log(Math.tan(newCenter.lat * Math.PI / 180) + 1 / Math.cos(newCenter.lat * Math.PI / 180)) / Math.PI) / 2 * Math.pow(2, tileZ));
+
+    setLocationInfo({
+      lat: newCenter.lat,
+      lng: newCenter.lng,
+      zoom: newZoom,
+      tileX: tileX,
+      tileY: tileY,
+      tileZ: newZoom,
+      timestamp: new Date().toISOString(),
+      bounds: bounds,
     });
-  }, []);
+
+    // Fetch elevation data concurrently
+    setIsElevationLoading(true);
+    const [elevation, stats] = await Promise.all([
+      getElevationForPoint(newCenter, newZoom),
+      getElevationStatsForBounds(bounds, newZoom)
+    ]);
+    setCenterElevation(elevation);
+    setElevationStats(stats);
+    setIsElevationLoading(false);
+  }, [setCenter, setZoom]);
+
+
 
   // Ensure we have valid center coordinates
-  const mapCenter = useMemo(() => 
-    center && Array.isArray(center) && center.length === 2 && !isNaN(center[0]) && !isNaN(center[1])
-      ? [center[0], center[1]] as L.LatLngExpression
-      : [51.505, -0.09] as L.LatLngExpression, // Default to London if center is invalid
-    [center]
-  );
+  const mapCenter: L.LatLngExpression = useMemo(() => [center.lat, center.lng], [center]);
 
   // Ensure we have a valid zoom level
   const mapZoom = useMemo(() => 
@@ -164,23 +135,38 @@ const MapContainer: React.FC<MapContainerProps> = ({
       >
         <TileLayer {...tileLayerProps} />
         <MapEvents onMoveEnd={handleMoveEnd} />
+        <ElevationOverlay k={k} elevationStats={elevationStats} />
       </LeafletMap>
       <div className="crosshair" />
+
+      <div className="k-slider-container">
+        <label htmlFor="k-slider">k: {k.toFixed(2)}</label>
+        <input
+          id="k-slider"
+          type="range"
+          min="-1"
+          max="1"
+          step="0.05"
+          value={k}
+          onChange={(e) => setK(parseFloat(e.target.value))}
+          className="k-slider"
+        />
+      </div>
 
       <div className="location-info">
         <div className="info-row">
           <span className="info-label">Широта:</span>
-          <span className="info-value">{locationInfo.lat}°</span>
+          <span className="info-value">{locationInfo.lat.toFixed(4)}</span>
         </div>
         <div className="info-row">
           <span className="info-label">Довгота:</span>
-          <span className="info-value">{locationInfo.lng}°</span>
+          <span className="info-value">{locationInfo.lng.toFixed(4)}</span>
         </div>
         <div className="info-row">
           <span className="info-label">Зум:</span>
           <span className="info-value">{locationInfo.zoom}</span>
         </div>
-        {locationInfo.tileX !== undefined && locationInfo.tileY !== undefined && (
+        {locationInfo.tileX !== undefined && (
           <div className="info-row">
             <span className="info-label">Тайл:</span>
             <span className="info-value">
@@ -188,19 +174,23 @@ const MapContainer: React.FC<MapContainerProps> = ({
             </span>
           </div>
         )}
-        <div className="info-row timestamp">
-          {new Date(locationInfo.timestamp).toLocaleTimeString()}
+        <div className="info-row">
+          <span className="info-label">Час:</span>
+          <span className="info-value">{new Date(locationInfo.timestamp).toLocaleTimeString()}</span>
         </div>
-        {isElevationLoading && <div className="info-row">Loading elevation...</div>}
-        {elevationError && <div className="info-row error">Elevation Error</div>}
-        {elevationSummary && (
-          <div className="info-row elevation-summary">
-            <span title="Min, Average, Max Elevation">Elevation (m): </span>
-            <span>{elevationSummary.min}</span>
-            <span> / </span>
-            <span>{elevationSummary.avg}</span>
-            <span> / </span>
-            <span>{elevationSummary.max}</span>
+        <div className="info-row">
+          <span className="info-label">Висота (центр):</span>
+          <span className="info-value">
+            {isElevationLoading ? 'Завантаження...' : 
+             centerElevation !== null ? `${centerElevation.toFixed(2)} м` : 'Недоступно'}
+          </span>
+        </div>
+        {elevationStats && (
+          <div className="info-row stats-row">
+            <span className="info-label">Статистика (min/avg/max):</span>
+            <span className="info-value">
+              {elevationStats.min.toFixed(0)} / {elevationStats.avg.toFixed(0)} / {elevationStats.max.toFixed(0)} м
+            </span>
           </div>
         )}
       </div>
