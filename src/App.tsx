@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { LazyMap } from './components/map/LazyMap';
 import { useMapStore } from './stores/mapStore';
-import { LayerSelectorIcon, SatelliteIcon, OSMIcon } from './components/map/MapIcons';
+import { LayerSelectorIcon, SatelliteIcon, OSMIcon, ElevationLayerIcon } from './components/map/MapIcons';
 import './App.css';
 
 function App() {
-  const { activeLayer, setActiveLayer } = useMapStore();
+  const { activeLayer, setActiveLayer, isElevationVisible, toggleElevationVisibility } = useMapStore();
   const [menuOpen, setMenuOpen] = useState(false);
 
   const toggleMenu = (e: React.MouseEvent) => {
@@ -21,31 +21,38 @@ function App() {
   return (
     <div className="app-root">
       <LazyMap />
-      <div className="map-layer-selector">
-        <div 
-          className="map-layer-button" 
-          onClick={toggleMenu}
-          title="Вибрати шар мапи"
-        >
-          <div className="icon"><LayerSelectorIcon activeLayer={activeLayer} /></div>
+      <div className="map-controls">
+        <div className="layer-selector-container">
           <div className={`map-layer-menu ${menuOpen ? 'open' : ''}`}>
-            <div 
-              className={`map-layer-item ${activeLayer === 'satellite' ? 'active' : ''}`} 
+            <div
+              className={`map-layer-button ${activeLayer === 'satellite' ? 'active' : ''}`}
               onClick={() => handleLayerSelect('satellite')}
               title="Супутник"
             >
-              <div className="text">Супутник</div>
-              <div className="icon"><SatelliteIcon /></div>
+              <SatelliteIcon />
             </div>
-            <div 
-              className={`map-layer-item ${activeLayer === 'osm' ? 'active' : ''}`} 
+            <div
+              className={`map-layer-button ${activeLayer === 'osm' ? 'active' : ''}`}
               onClick={() => handleLayerSelect('osm')}
               title="Мапа"
             >
-              <div className="text">Мапа</div>
-              <div className="icon"><OSMIcon /></div>
+              <OSMIcon />
             </div>
           </div>
+          <div
+            className={`map-layer-button ${menuOpen ? 'active' : ''}`}
+            onClick={toggleMenu}
+            title="Вибрати шар мапи"
+          >
+            <LayerSelectorIcon activeLayer={activeLayer} />
+          </div>
+        </div>
+        <div
+          className={`map-layer-button ${isElevationVisible ? 'active' : ''}`}
+          onClick={toggleElevationVisibility}
+          title="Показати/сховати шар висот"
+        >
+          <ElevationLayerIcon />
         </div>
       </div>
     </div>

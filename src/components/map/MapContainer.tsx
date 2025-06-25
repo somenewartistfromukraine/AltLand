@@ -40,7 +40,7 @@ const MapEvents = ({ onMoveEnd }: { onMoveEnd: (e: L.LeafletEvent) => void }) =>
 const MapContainer: React.FC<MapContainerProps> = ({
   height = "100vh"
 }) => {
-  const { center, zoom, activeLayer, setCenter, setZoom } = useMapStore();
+  const { center, zoom, activeLayer, isElevationVisible, setCenter, setZoom } = useMapStore();
   const tileLayerOptions = getMemoizedTileLayerOptions(activeLayer);
 
   const [locationInfo, setLocationInfo] = useState<LocationInfo>({
@@ -136,29 +136,33 @@ const MapContainer: React.FC<MapContainerProps> = ({
       >
         <TileLayer {...tileLayerProps} />
         <MapEvents onMoveEnd={handleMoveEnd} />
-        <ElevationOverlay k={k} elevationStats={elevationStats} />
+        {isElevationVisible && <ElevationOverlay k={k} elevationStats={elevationStats} />}
       </LeafletMap>
       <div className="crosshair" />
 
-      <div className="k-slider-container">
-        <input
-          id="k-slider"
-          title="Виділити западини <--O--> Виділити висоти"
-          type="range"
-          min="-1"
-          max="1"
-          step="0.05"
-          value={k}
-          onChange={(e) => setK(parseFloat(e.target.value))}
-          className="k-slider"
-        />
-      </div>
+      {isElevationVisible && (
+        <>
+          <div className="k-slider-container">
+            <input
+              id="k-slider"
+              title="Виділити западини <--O--> Виділити висоти"
+              type="range"
+              min="-1"
+              max="1"
+              step="0.05"
+              value={k}
+              onChange={(e) => setK(parseFloat(e.target.value))}
+              className="k-slider"
+            />
+          </div>
 
-      <div className="location-info" title="Поточні координати та висота в центрі мапи">
-        <span>
-          {`Шир: ${locationInfo.lat.toFixed(6)}, Дов: ${locationInfo.lng.toFixed(6)}, Вис: ${isElevationLoading ? '...' : centerElevationInfo !== null ? `${centerElevationInfo.elevation.toFixed(0)}м` : 'н/д'}`}
-        </span>
-      </div>
+          <div className="location-info" title="Поточні координати та висота в центрі мапи">
+            <span>
+              {`Шир: ${locationInfo.lat.toFixed(6)}, Дов: ${locationInfo.lng.toFixed(6)}, Вис: ${isElevationLoading ? '...' : centerElevationInfo !== null ? `${centerElevationInfo.elevation.toFixed(0)}м` : 'н/д'}`}
+            </span>
+          </div>
+        </>
+      )}
 
       {/* <ElevationProfile 
         data={elevationData || []} 
