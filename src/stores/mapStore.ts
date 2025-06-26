@@ -14,7 +14,6 @@ interface MapStore {
   setActiveLayer: (layer: 'satellite' | 'osm') => void;
   toggleElevationVisibility: () => void;
   setTargetPoint: (point: { lat: number; lng: number } | null) => void;
-  toggleCirclesVisibility: () => void;
   toggleSearchVisibility: () => void;
   setSearchLocation: (location: { lat: number; lon: number } | null) => void;
 }
@@ -32,8 +31,7 @@ export const useMapStore = create<MapStore>((set) => ({
   setZoom: (zoom) => set({ zoom }),
   setActiveLayer: (layer) => set({ activeLayer: layer }),
   toggleElevationVisibility: () => set((state) => ({ isElevationVisible: !state.isElevationVisible })),
-  setTargetPoint: (point) => set((state) => ({ targetPoint: point, isCirclesVisible: point ? state.isCirclesVisible : false })),
-  toggleCirclesVisibility: () => set((state) => ({ isCirclesVisible: !state.isCirclesVisible })),
+  setTargetPoint: (point) => set({ targetPoint: point, isCirclesVisible: !!point }),
   toggleSearchVisibility: () => set((state) => ({ isSearchVisible: !state.isSearchVisible })),
   setSearchLocation: (location) => set({ searchLocation: location }),
 }));

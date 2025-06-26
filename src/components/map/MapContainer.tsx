@@ -2,7 +2,7 @@ import React, { useMemo, useState, useEffect } from 'react';
 import { MapContainer as LeafletMap, TileLayer, useMapEvents, Marker } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import { useMapStore } from '../../stores/mapStore';
-import { getMemoizedTileLayerUrl, getMemoizedTileLayerAttribution, getMemoizedTileLayerOptions } from '../../utils/memoize';
+import { getSatelliteLayer, getOSMLayer, getReferenceLayer } from '../../utils/memoize';
 import L from 'leaflet';
 import { getElevationForPoint, getElevationStatsForBounds, ElevationStats, PointElevationInfo } from '../../services/terrainService';
 import ElevationOverlay from './ElevationOverlay';
@@ -44,8 +44,7 @@ const MapContainer: React.FC<MapContainerProps> = ({
   height = "100vh"
 }) => {
   const { center, zoom, activeLayer, isElevationVisible, targetPoint, isCirclesVisible, setCenter, setZoom } = useMapStore();
-  const tileLayerOptions = getMemoizedTileLayerOptions(activeLayer);
-
+  
   const [locationInfo, setLocationInfo] = useState<LocationInfo>({
     lat: center.lat,
     lng: center.lng,
@@ -107,13 +106,12 @@ const MapContainer: React.FC<MapContainerProps> = ({
   );
 
   // Get tile layer props
-  const tileLayerProps = useMemo(() => ({
-    url: getMemoizedTileLayerUrl(activeLayer),
-    attribution: getMemoizedTileLayerAttribution(activeLayer),
-    ...tileLayerOptions,
-    // Ensure subdomains is always an array
-    subdomains: tileLayerOptions.subdomains || ['a', 'b', 'c']
-  }), [activeLayer, tileLayerOptions]);
+    const tileLayerProps = useMemo(() => {
+    if (activeLayer === 'satellite') {
+      return getSatelliteLayer();
+    }
+    return getOSMLayer();
+  }, [activeLayer]);
 
   // Set custom property for height if it's not the default
   const containerStyle = height !== '100vh' ? { '--map-height': height } as React.CSSProperties : {};
@@ -141,6 +139,7 @@ const MapContainer: React.FC<MapContainerProps> = ({
         }}
       >
         <TileLayer {...tileLayerProps} />
+        {activeLayer === 'satellite' && <TileLayer {...getReferenceLayer()} pane="shadowPane" />}
         <MapEvents onMoveEnd={handleMoveEnd} />
         <MapFlyTo />
         {isElevationVisible && <ElevationOverlay k={k} elevationStats={elevationStats} />}

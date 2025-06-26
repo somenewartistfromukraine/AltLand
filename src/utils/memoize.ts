@@ -28,27 +28,21 @@ export const memoizedTileLayers = {
   })),
   osm: memoize(() => ({
     url: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-    attribution: "© OpenStreetMap contributors",
+    attribution: " OpenStreetMap contributors",
     subdomains: ['a', 'b', 'c']
-  }))
+  })),
+  
 } as const;
 
-// Memoized tile layer URL getter
-export const getMemoizedTileLayerUrl = memoize((activeLayer: 'satellite' | 'osm') => {
-  return memoizedTileLayers[activeLayer]().url;
-});
+// This is the configuration for the overlay
+const referenceLayerConfig = {
+    url: "https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}",
+    attribution: "Esri, HERE, Garmin, ODbL",
+    maxZoom: 20,
+    detectRetina: true
+};
 
-// Memoized attribution getter
-export const getMemoizedTileLayerAttribution = memoize((activeLayer: 'satellite' | 'osm') => {
-  return memoizedTileLayers[activeLayer]().attribution;
-});
-
-// Memoized tile layer options
-export const getMemoizedTileLayerOptions = memoize((activeLayer: 'satellite' | 'osm') => {
-  const options = {
-    subdomains: activeLayer === 'osm' ? ['a', 'b', 'c'] : undefined,
-    maxZoom: activeLayer === 'satellite' ? 20 : undefined,
-    detectRetina: activeLayer === 'satellite'
-  };
-  return options;
-});
+export const getSatelliteLayer = () => memoizedTileLayers.satellite();
+export const getOSMLayer = () => memoizedTileLayers.osm();
+// This function now provides the reference layer config
+export const getReferenceLayer = () => referenceLayerConfig;
