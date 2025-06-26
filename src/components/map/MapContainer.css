@@ -28,6 +28,25 @@
   z-index: 1000;
 }
 
+.point-marker {
+  width: 32px;
+  height: 32px;
+  background: transparent;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.point-dot {
+  width: 10px;
+  height: 10px;
+  background: red;
+  border-radius: 50%;
+  border: 1px solid white;
+  margin: auto;
+}
+
 .red-dot-marker {
   background-color: red;
   width: 10px;
@@ -68,6 +87,15 @@
   left: 50%;
   top: 50%;
   transform: translate(-50%, -50%);
+}
+
+.crosshair-hover-area {
+  cursor: default;
+}
+
+.crosshair-hover-area .leaflet-marker-icon {
+  background: transparent;
+  border: none;
 }
 
 
