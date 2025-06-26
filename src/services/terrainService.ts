@@ -1,6 +1,6 @@
 import L from 'leaflet';
 
-const AWS_TERRAIN_TILE_URL = 'https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png';
+const MAPBOX_TERRAIN_TILE_URL = 'https://api.mapbox.com/v4/mapbox.terrain-rgb/{z}/{x}/{y}.pngraw?access_token=pk.eyJ1IjoiaG9yaXpvbi1pbi11a3JhaW5lIiwiYSI6ImNtY2Rqamk4OTBoeDcyanF3d3h2bDl3OGMifQ.6QMuaN1aVViMc2AQ0UX6ww';
 
 /**
  * Decodes an RGB pixel from a AWS Terrain-RGB tile to elevation in meters.
@@ -22,7 +22,8 @@ export interface PointElevationInfo {
 }
 
 export const decodeElevation = (r: number, g: number, b: number): number => {
-  return (r * 256 + g + b / 256) - 32768;
+  // Formula for Mapbox Terrain-RGB https://docs.mapbox.com/data/tilesets/reference/mapbox-terrain-rgb-v1/
+  return -10000 + ((r * 256 * 256 + g * 256 + b) * 0.1);
 };
 
 interface TileData {
@@ -98,7 +99,7 @@ export const getElevationForPoint = async (latLng: L.LatLng, zoom: number): Prom
     const tileX = Math.floor(n * ((latLng.lng + 180) / 360));
     const tileY = Math.floor(n * (1 - (Math.log(Math.tan(latLng.lat * Math.PI / 180) + 1 / Math.cos(latLng.lat * Math.PI / 180)) / Math.PI)) / 2);
 
-    const tileUrl = L.Util.template(AWS_TERRAIN_TILE_URL, { x: tileX, y: tileY, z: effectiveZoom });
+    const tileUrl = L.Util.template(MAPBOX_TERRAIN_TILE_URL, { x: tileX, y: tileY, z: effectiveZoom });
 
     const tileData = await getTileData(tileUrl);
     if (!tileData) return null;
@@ -170,7 +171,7 @@ export const getElevationStatsForBounds = async (bounds: L.LatLngBounds, zoom: n
   const tilePromises: Promise<TileData | null>[] = [];
   for (let x = minTile.x; x <= maxTile.x; x++) {
     for (let y = minTile.y; y <= maxTile.y; y++) {
-      const tileUrl = L.Util.template(AWS_TERRAIN_TILE_URL, { x, y, z: effectiveZoom });
+      const tileUrl = L.Util.template(MAPBOX_TERRAIN_TILE_URL, { x, y, z: effectiveZoom });
       tilePromises.push(getTileData(tileUrl));
     }
   }

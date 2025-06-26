@@ -30,7 +30,7 @@ const ElevationLayer = L.GridLayer.extend({
       fetchCoords.z = maxZoom;
     }
 
-    const tileUrl = L.Util.template('https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png', fetchCoords);
+    const tileUrl = L.Util.template('https://api.mapbox.com/v4/mapbox.terrain-rgb/{z}/{x}/{y}.pngraw?access_token=pk.eyJ1IjoiaG9yaXpvbi1pbi11a3JhaW5lIiwiYSI6ImNtY2Rqamk4OTBoeDcyanF3d3h2bDl3OGMifQ.6QMuaN1aVViMc2AQ0UX6ww', fetchCoords);
 
     const image = new Image();
     image.crossOrigin = 'Anonymous';
