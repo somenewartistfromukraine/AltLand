@@ -109,3 +109,57 @@
 .map-layer-button.active {
   color: #4CAF50;
 }
+
+/* Generic panel style for text objects, inspired by Information Panel */
+.info-panel-container {
+  background-color: rgba(30, 30, 30, 0.85);
+  border: 1px solid #555;
+  border-radius: 5px;
+  padding: 0; /* Container has no padding, like search-results */
+  text-shadow: 1px 1px 2px black;
+}
+
+.info-panel-item {
+  padding: 8px 12px; /* Item inside has padding, like search-result-item */
+  color: white;
+  font-size: 14px;
+}
+
+.info-panel-item a {
+  color: #4ade80;
+  text-decoration: none;
+}
+
+.info-panel-item a:hover {
+  text-decoration: underline;
+}
+
+/* Generic style for panels at the bottom of the screen */
+.bottom-panel {
+  position: absolute;
+  bottom: 10px;
+  font-family: 'Roboto Mono', monospace;
+  font-size: 13px;
+  z-index: 1000;
+  color: #000;
+  text-shadow: 1px 1px 2px #fff, -1px -1px 2px #fff, 1px -1px 2px #fff, -1px 1px 2px #fff;
+}
+
+.bottom-panel a {
+  color: #0000EE; /* Standard link blue, visible against white text shadow */
+  text-decoration: none;
+}
+
+.bottom-panel a:hover {
+  text-decoration: underline;
+}
+
+/* Positioning for the copyright notice */
+.copyright-container {
+  right: 20px;
+}
+
+.location-info-container {
+    left: 10px;
+}
+

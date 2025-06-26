@@ -3,6 +3,7 @@ import { LazyMap } from './components/map/LazyMap';
 import { useMapStore } from './stores/mapStore';
 import { LayerSelectorIcon, SatelliteIcon, OSMIcon, ElevationLayerIcon, MakePointIcon, MakeCirclesIcon, SearchIcon } from './components/map/MapIcons';
 import SearchControl from './components/map/SearchControl';
+import Copyright from './components/Copyright';
 import './App.css';
 
 function App() {
@@ -92,6 +93,7 @@ function App() {
         </div>
       </div>
       <LazyMap />
+      <Copyright />
     </div>
   );
 }
