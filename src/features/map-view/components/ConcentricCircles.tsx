@@ -1,7 +1,7 @@
 import React from 'react';
 import { Circle, Marker } from 'react-leaflet';
 import L from 'leaflet';
-import { useMapStore } from '../../stores/mapStore';
+import { useMapStore } from '../store/mapStore';
 
 // Haversine formula for destination point
 const destinationPoint = (lat: number, lng: number, bearing: number, distance: number): L.LatLng => {

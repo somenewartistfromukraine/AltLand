@@ -3,8 +3,8 @@ import { MapContainer as LeafletMap, TileLayer, Marker, Tooltip, useMap, useMapE
 import L from 'leaflet';
 import geomagnetism from 'geomagnetism';
 import 'leaflet/dist/leaflet.css';
-import { useMapStore } from '../../stores/mapStore';
-import { getSatelliteLayer, getOSMLayer, getReferenceLayer } from '../../utils/memoize';
+import { useMapStore } from '../store/mapStore';
+import { getSatelliteLayer, getOSMLayer, getReferenceLayer } from '../../../shared/lib/memoize';
 
 // Tooltip content for Point marker
 interface TooltipContentForPointProps {
@@ -55,7 +55,7 @@ const TooltipContentForPoint: React.FC<TooltipContentForPointProps> = ({ point, 
     </div>
   );
 };
-import { getElevationForPoint, getElevationStatsForBounds, ElevationStats, PointElevationInfo } from '../../services/terrainService';
+import { getElevationForPoint, getElevationStatsForBounds, ElevationStats, PointElevationInfo } from '../services/terrainService';
 import ElevationOverlay from './ElevationOverlay';
 import ConcentricCircles from './ConcentricCircles';
 import MapFlyTo from './MapFlyTo';

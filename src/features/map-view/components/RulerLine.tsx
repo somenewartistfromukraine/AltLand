@@ -1,7 +1,7 @@
 import React from 'react';
 import { Polyline, Marker, Tooltip, useMap } from 'react-leaflet';
 import L from 'leaflet';
-import { getAzimuthAndDistance } from '../../utils/geo';
+import { getAzimuthAndDistance } from '../../../shared/lib/geo';
 
 interface RulerLineProps {
   start: { lat: number; lng: number }; // map center

@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom/client';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import App from './App';
 import './index.css';
-import { useMapStore } from './stores/mapStore';
+import { useMapStore } from "./features/map-view/store/mapStore";
 
 // Create a client
 const queryClient = new QueryClient();

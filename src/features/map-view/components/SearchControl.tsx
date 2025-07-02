@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useMapStore } from '../../stores/mapStore';
+import { useMapStore } from '../store/mapStore';
 
 // Define a type for the search results from Nominatim
 interface NominatimResult {

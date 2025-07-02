@@ -1,7 +1,7 @@
 import L from 'leaflet';
 import { useMap } from 'react-leaflet';
 import React, { useEffect, useRef } from 'react';
-import { decodeElevation, ElevationStats } from '../../services/terrainService';
+import { decodeElevation, ElevationStats } from '../services/terrainService';
 
 // Define the custom layer
 const ElevationLayer = L.GridLayer.extend({
